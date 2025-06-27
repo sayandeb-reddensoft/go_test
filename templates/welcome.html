@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Clenz</title>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Hi {{.Name}}!</h3>
+      <p>Thank you for signing up! We're excited to have you on board.</p>
+      <p>To complete your registration, please use the following OTP: This otp only valid for the next 15 minutes.</p>
+      <p class="otp-code"><b>{{.Code}}</b></p>
+      <p>Enter this OTP on the registration page to verify your account and enjoy your experience.</p>
+      <p>If you didn't sign up for this account, you can ignore this email.</p>
+      <div class="footer">
+        <p>Best regards,</p>
+        <p>The Support Team</p>
+      </div>
+    </div>
+  </body>
+</html>

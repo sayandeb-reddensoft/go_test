@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Deletion Requested</title>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Hi {{.Name}},</h3>
+      <p>We received a request to delete your Clenz account.</p>
+      <p>
+        To confirm this request, please use the OTP below. This OTP is valid for
+        the next 15 minutes:
+      </p>
+      <p class="otp-code"><b>{{.Code}}</b></p>
+      <p>
+        Once confirmed, your account will be marked for deletion. You’ll still
+        be able to log in and use your account normally for the next
+        <b>30 days</b>. After that, all your data will be permanently deleted
+        and cannot be recovered.
+      </p>
+      <p>
+        If this wasn't you or you’ve changed your mind, simply ignore this email
+        or log in again to cancel the deletion request.
+      </p>
+      <p>{{.Message}}</p>
+      <div class="footer">
+        <p>Best regards,</p>
+        <p>The Clenz Support Team</p>
+      </div>
+    </div>
+  </body>
+</html>
