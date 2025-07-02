@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"github.com/nelsonin-research-org/clenz-auth/globals"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
 	"gorm.io/gorm"
 )
 

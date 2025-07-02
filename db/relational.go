@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nelsonin-research-org/clenz-auth/globals"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
+	model "github.com/nelsonin-research-org/cdc-auth/models/database"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -33,7 +34,11 @@ func ConnectPostgres(config *gorm.Config) error {
 // relationalSchemaMigrate performs schema migration for relational db.
 func relationalSchemaMigrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(
-	
+		&model.Role{},
+		&model.User{},
+		&model.Login{},
+		&model.Address{},
+		&model.Organization{},
 	); err != nil {
 		return err
 	}

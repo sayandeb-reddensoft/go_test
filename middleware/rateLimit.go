@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nelsonin-research-org/clenz-auth/globals"
-	"github.com/nelsonin-research-org/clenz-auth/message"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
+	"github.com/nelsonin-research-org/cdc-auth/message"
 )
 
 func RateLimitMiddleware(limit int) gin.HandlerFunc {

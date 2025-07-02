@@ -1,21 +1,21 @@
 package services
 
 import (
-	controller "github.com/nelsonin-research-org/clenz-auth/controller/form"
+	"github.com/nelsonin-research-org/cdc-auth/interfaces"
 )
 
-type FormValidationServiceImpl struct {
-	Controller controller.FormValidationController
+type formValidateServiceImpl struct {
+	formValidateController interfaces.FormValidationController
 }
 
-func NewFormValidationService() *FormValidationServiceImpl {
-	return &FormValidationServiceImpl{}
+func NewFormValidationService(c interfaces.FormValidationController) interfaces.FormValidateService {
+	return &formValidateServiceImpl{formValidateController: c}
 }
 
-func (service *FormValidationServiceImpl) ValidateStruct(s interface{}) error {
-	return service.Controller.ValidateStruct(s)
+func (service *formValidateServiceImpl) ValidateStruct(s interface{}) error {
+	return service.formValidateController.ValidateStruct(s)
 }
 
-func (service *FormValidationServiceImpl) ReturnFirstInvalidField(err error) string {
-	return service.Controller.ReturnFirstInvalidField(err)
+func (service *formValidateServiceImpl) ReturnFirstInvalidField(err error) string {
+	return service.formValidateController.ReturnFirstInvalidField(err)
 }

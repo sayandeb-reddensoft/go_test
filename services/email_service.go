@@ -1,38 +1,26 @@
 package services
 
 import (
-	controller "github.com/nelsonin-research-org/clenz-auth/controller/email"
-	emailModel "github.com/nelsonin-research-org/clenz-auth/models/email"
+	"github.com/nelsonin-research-org/cdc-auth/interfaces"
+	emailModel "github.com/nelsonin-research-org/cdc-auth/models/email"
 )
 
-type EmailServiceImpl struct {
-	Controller controller.EmailController
+type emailServiceImpl struct {
+	emailController interfaces.EmailController
 }
 
-func NewEmailService() *EmailServiceImpl {
-	return &EmailServiceImpl{}
+func NewEmailService(c interfaces.EmailController) interfaces.EmailService {
+	return &emailServiceImpl{emailController: c}
 }
 
-func (service *EmailServiceImpl) SendResetPasswordOTP(data *emailModel.ResetPasswordMailContent, email string) (bool, error) {
-	return service.Controller.SendResetPasswordOTP(data, email)
+func (service *emailServiceImpl) SendResetPasswordOTP(data *emailModel.ResetPasswordMailContent, emails ...string) (bool, error) {
+	return service.emailController.SendResetPasswordOTP(data, emails...)
 }
 
-func (service *EmailServiceImpl) SendWelcomeOTP(data *emailModel.WelcomeAccountMailContent, email string) (bool, error) {
-	return service.Controller.SendWelcomeOTP(data, email)
+func (service *emailServiceImpl) SendWelcomeOTP(data *emailModel.WelcomeAccountMailContent, emails ...string) (bool, error) {
+	return service.emailController.SendWelcomeOTP(data, emails...)
 }
 
-func (service *EmailServiceImpl) ParseTemplate(templateName string, data interface{}) ([]byte, error) {
-	return service.Controller.ParseTemplate(templateName, data)
-}
-
-func (service *EmailServiceImpl) SendEmail(recp []string, subject string, body []byte) error {
-	return service.Controller.SendEmail(recp, subject, body)
-}
-
-func (service *EmailServiceImpl) DevSendEmail(recp []string, subject string, body []byte) error {
-	return service.Controller.DevSendEmail(recp, subject, body)
-}
-
-func (service *EmailServiceImpl) SendDeleteAccountOTP(data *emailModel.DeleteAccountMailContent, email string) (bool, error) {
-	return service.Controller.SendDeleteAccountOTP(data, email)
+func (service *emailServiceImpl) SendDeleteAccountOTP(data *emailModel.DeleteAccountMailContent, emails ...string) (bool, error) {
+	return service.emailController.SendDeleteAccountOTP(data, emails...)
 }

@@ -2,35 +2,54 @@ package controller
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"net/smtp"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/nelsonin-research-org/clenz-auth/globals"
-	model "github.com/nelsonin-research-org/clenz-auth/models/email"
-	"github.com/nelsonin-research-org/clenz-auth/utils"
+	constants "github.com/nelsonin-research-org/cdc-auth/const"
+	"github.com/nelsonin-research-org/cdc-auth/interfaces"
+	model "github.com/nelsonin-research-org/cdc-auth/models/email"
+	"github.com/nelsonin-research-org/cdc-auth/utils"
+	env "github.com/nelsonin-research-org/cdc-auth/utils"
 )
 
-type EmailController struct{}
-
-func NewEmailController() *EmailController {
-	return &EmailController{}
+type emailControllerImpl struct{
+	templateDir     string
+	mailHost        string
+	mailUserName    string
+	mailPassword    string
+	mailFrom        string
+	mailPort        string
+	awsSession      *session.Session
 }
 
-func (c *EmailController) SendResetPasswordOTP(data *model.ResetPasswordMailContent, emails ...string) (bool, error) {
+func NewEmailController(td, host, username, password, from, port string, sesSession *session.Session) interfaces.EmailController {
+	return &emailControllerImpl{
+		templateDir: td,
+		mailHost: host,
+		mailUserName: username,
+		mailPassword: password,
+		mailFrom: from,
+		mailPort: port,
+		awsSession: sesSession,
+	}
+}
+
+func (c *emailControllerImpl) SendResetPasswordOTP(data *model.ResetPasswordMailContent, emails ...string) (bool, error) {
 	var MailContent model.ResetPasswordMailContent
 	MailContent.Code = data.Code
 
-	bodyData, err := c.ParseTemplate("forgotpassword.html", MailContent)
+	bodyData, err := c.parseTemplate(constants.EMAIL_FORGOT_PASSWORD_ACCOUNT_TEMPLATE, MailContent)
 	if err != nil {
 		return false, err
 	}
 
-	err = c.SendEmail(emails, "Reset Password", bodyData)
+	err = c.sendEmail(emails, constants.EMAIL_FORGOT_PASSWORD_ACCOUNT_SUBJECT, bodyData)
 	if err != nil {
 		return false, err
 	}
@@ -38,17 +57,17 @@ func (c *EmailController) SendResetPasswordOTP(data *model.ResetPasswordMailCont
 	return true, nil
 }
 
-func (c *EmailController) SendWelcomeOTP(data *model.WelcomeAccountMailContent, emails ...string) (bool, error) {
+func (c *emailControllerImpl) SendWelcomeOTP(data *model.WelcomeAccountMailContent, emails ...string) (bool, error) {
 	var MailContent model.WelcomeAccountMailContent
 	MailContent.Code = data.Code
 	MailContent.Name = data.Name
 
-	bodyData, err := c.ParseTemplate("welcome.html", MailContent)
+	bodyData, err := c.parseTemplate(constants.EMAIL_ONBOARD_ACCOUNT_TEMPLATE, MailContent)
 	if err != nil {
 		return false, err
 	}
 
-	err = c.SendEmail(emails, "Welcome to Clenz!", bodyData)
+	err = c.sendEmail(emails, constants.EMAIL_ONBOARD_ACCOUNT_SUBJECT, bodyData)
 	if err != nil {
 		return false, err
 	}
@@ -56,18 +75,18 @@ func (c *EmailController) SendWelcomeOTP(data *model.WelcomeAccountMailContent, 
 	return true, nil
 }
 
-func (c *EmailController) SendDeleteAccountOTP(data *model.DeleteAccountMailContent, emails ...string) (bool, error) {
+func (c *emailControllerImpl) SendDeleteAccountOTP(data *model.DeleteAccountMailContent, emails ...string) (bool, error) {
 	var MailContent model.DeleteAccountMailContent
 	MailContent.Code = data.Code
 	MailContent.Name = data.Name
 	MailContent.Message = data.Message
 
-	bodyData, err := c.ParseTemplate("delete-account.html", MailContent)
+	bodyData, err := c.parseTemplate(constants.EMAIL_DELETE_ACCOUNT_TEMPLATE, MailContent)
 	if err != nil {
 		return false, err
 	}
 
-	err = c.SendEmail(emails, "Account Deletion Requested", bodyData)
+	err = c.sendEmail(emails, constants.EMAIL_DELETE_ACCOUNT_SUBJECT, bodyData)
 	if err != nil {
 		return false, err
 	}
@@ -75,8 +94,8 @@ func (c *EmailController) SendDeleteAccountOTP(data *model.DeleteAccountMailCont
 	return true, nil
 }
 
-func (c *EmailController) ParseTemplate(templateName string, data interface{}) ([]byte, error) {
-	templateFileName := os.Getenv("MAIL_TEMPLATE_PATH") + templateName
+func (c *emailControllerImpl) parseTemplate(templateName string, data interface{}) ([]byte, error) {
+	templateFileName := c.templateDir + templateName
 	tpl, err := template.ParseFiles(templateFileName)
 	if err != nil {
 		return nil, err
@@ -89,18 +108,18 @@ func (c *EmailController) ParseTemplate(templateName string, data interface{}) (
 	return buf.Bytes(), nil
 }
 
-func (c *EmailController) SendEmail(recp []string, subject string, body []byte) error {
-	if utils.IsDevelopment() {
-		err := c.DevSendEmail(recp, subject, body)
+func (c *emailControllerImpl) sendEmail(recp []string, subject string, body []byte) error {
+	if env.IsDevelopment() || env.IsStage() {
+		err := c.sendEmailTest(recp, subject, body)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	} else {
-		svc := ses.New(globals.AWSSesSession)
+		svc := ses.New(c.awsSession)
 
-		from := os.Getenv("MAIL_FROM")
+		from := c.mailFrom
 		to := recp
 		subjectStr := subject
 		bodyStr := string(body)
@@ -126,40 +145,39 @@ func (c *EmailController) SendEmail(recp []string, subject string, body []byte) 
 
 		_, err := svc.SendEmail(input)
 		if err != nil {
-			return fmt.Errorf("failed to send email: %v", err)
+			return errors.New("failed to send email:" + err.Error())
 		}
 	}
 
 	return nil
 }
 
-func (c *EmailController) DevSendEmail(recp []string, subject string, body []byte) error {
-	if os.Getenv("TESTING") == "true" || os.Getenv("APP_STAGING") == "true" {
-		mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
-		from := "From: " + os.Getenv("MAIL_FROM") + "\n"
-		to := "To: " + strings.Join(recp, ",") + "\n"
-		sub := "Subject: " + subject + "\n"
-		headers := from + to + sub + mime + "\n"
+func (c *emailControllerImpl) sendEmailTest(recp []string, subject string, body []byte) error {
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
+	from := "From: " + c.mailFrom + "\n"
+	to := "To: " + strings.Join(recp, ",") + "\n"
+	sub := "Subject: " + subject + "\n"
+	headers := from + to + sub + mime + "\n"
 
-		msg := []byte(headers + string(body))
+	msg := []byte(headers + string(body))
 
-		username := os.Getenv("MAIL_USERNAME")
-		password := os.Getenv("MAIL_PASSWORD")
-		host := os.Getenv("MAIL_HOST")
-		portStr := os.Getenv("MAIL_PORT")
+	username := c.mailUserName
+	password := c.mailPassword
+	host := c.mailHost
+	portStr := c.mailPort
 
-		port, err := utils.StringToInt(portStr)
-		if err != nil {
-			return err
-		}
-
-		addr := fmt.Sprintf("%s:%d", host, port)
-		auth := smtp.PlainAuth("", username, password, host)
-
-		err = smtp.SendMail(addr, auth, os.Getenv("MAIL_FROM"), recp, msg)
-		if err != nil {
-			return fmt.Errorf("failed to send email: %v", err)
-		}
+	port, err := utils.StringToInt(portStr)
+	if err != nil {
+		return err
 	}
+
+	addr := fmt.Sprintf("%s:%d", host, port)
+	auth := smtp.PlainAuth("", username, password, host)
+
+	err = smtp.SendMail(addr, auth, c.mailFrom, recp, msg)
+	if err != nil {
+		return errors.New("failed to send email:" + err.Error())
+	}
+
 	return nil
 }
