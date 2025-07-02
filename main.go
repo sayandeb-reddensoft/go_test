@@ -7,15 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	constants "github.com/nelsonin-research-org/clenz-auth/const"
-	"github.com/nelsonin-research-org/clenz-auth/db"
-	"github.com/nelsonin-research-org/clenz-auth/globals"
-	"github.com/nelsonin-research-org/clenz-auth/handlers"
-	app "github.com/nelsonin-research-org/clenz-auth/handlers/data"
+	constants "github.com/nelsonin-research-org/cdc-auth/const"
+	"github.com/nelsonin-research-org/cdc-auth/db"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
+	app "github.com/nelsonin-research-org/cdc-auth/handlers/data"
 
-	"github.com/nelsonin-research-org/clenz-auth/middleware"
-	"github.com/nelsonin-research-org/clenz-auth/routes"
-	"github.com/nelsonin-research-org/clenz-auth/utils"
+	"github.com/nelsonin-research-org/cdc-auth/middleware"
+	"github.com/nelsonin-research-org/cdc-auth/routes"
+	"github.com/nelsonin-research-org/cdc-auth/utils"
 )
 
 var router *gin.Engine
@@ -58,11 +57,9 @@ func main() {
 	}
 
 	defer db.DisconnectDB()
-
+ 
 	globals.RequestStore.Requests = make(map[string]map[string]int)
-	handlers := &app.AppHandlers{
-		UserHandler:     handlers.NewUserHandler(),
-	}
+	handlers := app.LoadAppHandlers()
 
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -72,7 +69,7 @@ func main() {
 	versionRouter := router.Group("/api/v1")
 	{
 		// No auth routes
-		routes.NoAuthGroupRoutes(versionRouter, *handlers)
+		routes.NoAuthGroupRoutes(versionRouter, handlers)
 	}
 
 	router.NoRoute(middleware.PathNotFound())
