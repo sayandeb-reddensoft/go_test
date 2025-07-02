@@ -1,88 +1,59 @@
 package services
 
 import (
-	controller "github.com/nelsonin-research-org/clenz-auth/controller/user"
-	"github.com/nelsonin-research-org/clenz-auth/models/appschema"
-	socialModel "github.com/nelsonin-research-org/clenz-auth/models/socialAuth"
-	userModel "github.com/nelsonin-research-org/clenz-auth/models/user"
+	"github.com/nelsonin-research-org/cdc-auth/interfaces"
+	"github.com/nelsonin-research-org/cdc-auth/models/appschema"
+	userModel "github.com/nelsonin-research-org/cdc-auth/models/user"
 )
 
-type UserServiceImpl struct {
-	Controller controller.UserController
+type userControllerImpl struct {
+	userController interfaces.UserController
 }
 
-func NewUserService() *UserServiceImpl {
-	return &UserServiceImpl{}
+func NewUserService(c interfaces.UserController) interfaces.UserService {
+	return &userControllerImpl{userController: c}
 }
 
-func (service *UserServiceImpl) CreateNewUser(userData *userModel.SignUpData) (string, error) {
-	return service.Controller.CreateNewUser(userData)
+func (service *userControllerImpl) CreateNewOrg(userData *userModel.SignUpData, userId string) (string, error) {
+	return service.userController.CreateNewOrg(userData, userId)
 }
 
-func (service *UserServiceImpl) IsUserAlreadyExists(email string) (bool, error) {
-	return service.Controller.IsUserAlreadyExists(email)
+func (service *userControllerImpl) CreateNewUser(userData *userModel.User, uType int) (bool, error)  {
+	return service.userController.CreateNewUser(userData, uType)
 }
 
-func (service *UserServiceImpl) GetUserIdAndPasswordByEmail(email string) (string, string) {
-	return service.Controller.GetUserIdAndPasswordByEmail(email)
+func (service *userControllerImpl) IsUserAlreadyExists(email string) (bool, error) {
+	return service.userController.IsUserAlreadyExists(email)
 }
 
-func (service *UserServiceImpl) LogThisLogin(userId string, isCredentialCorrect bool, userIp string) error {
-	return service.Controller.LogThisLogin(userId, isCredentialCorrect, userIp)
+func (service *userControllerImpl) GetUserIdAndPasswordByEmail(email string) (string, string) {
+	return service.userController.GetUserIdAndPasswordByEmail(email)
 }
 
-func (service *UserServiceImpl) LogThisLogout(userId string) error {
-	return service.Controller.LogThisLogout(userId)
+func (service *userControllerImpl) LogThisLogin(userId string, isCredentialCorrect bool, userIp string) error {
+	return service.userController.LogThisLogin(userId, isCredentialCorrect, userIp)
 }
 
-func (service *UserServiceImpl) GetUserDataFromSession(userId string) (*appschema.JwtData, error) {
-	return service.Controller.GetUserDataFromSession(userId)
+func (service *userControllerImpl) LogThisLogout(userId string) error {
+	return service.userController.LogThisLogout(userId)
 }
 
-func (service *UserServiceImpl) GetUserDataById(userId string) (*userModel.GetUserData, error) {
-	return service.Controller.GetUserDataById(userId)
+func (service *userControllerImpl) GetUserDataFromSession(userId string) (*appschema.JwtData, error) {
+	return service.userController.GetUserDataFromSession(userId)
 }
 
-func (service *UserServiceImpl) GenerateAndStoreOtp(userId string, key string) (int, error) {
-	return service.Controller.GenerateAndStoreOtp(userId, key)
+func (service *userControllerImpl) GetUserDataById(userId string) (*userModel.GetUserData, error) {
+	return service.userController.GetUserDataById(userId)
 }
 
-func (service *UserServiceImpl) VerifyOTP(otpKey string, otp int) (bool, error) {
-	return service.Controller.VerifyOTP(otpKey, otp)
+func (service *userControllerImpl) UpdateUserPassword(password string, email string) (bool, error) {
+	return service.userController.UpdateUserPassword(password, email)
 }
 
-func (service *UserServiceImpl) UpdateUserPassword(password string, email string) (bool, error) {
-	return service.Controller.UpdateUserPassword(password, email)
+func (service *userControllerImpl) IsUserAccountVerifiedByEmail(email string) (bool, error) {
+	return service.userController.IsUserAccountVerifiedByEmail(email)
 }
 
-func (service *UserServiceImpl) IsUserAccountDeletedByEmail(email string) (bool, error) {
-	return service.Controller.IsUserAccountDeletedByEmail(email)
-}
-
-func (service *UserServiceImpl) IsSocialUserExistAndActive(email string) (string, error) {
-	return service.Controller.IsSocialUserExistAndActive(email)
-}
-
-func (service *UserServiceImpl) MakeUserAccountActiveByEmail(email string) (bool, error) {
-	return service.Controller.MakeUserAccountActiveByEmail(email)
-}
-
-func (service *UserServiceImpl) IsUserAccountVerifiedByEmail(email string) (bool, error) {
-	return service.Controller.IsUserAccountVerifiedByEmail(email)
-}
-
-func (service *UserServiceImpl) MakeUserAccountAsVerifiedByEmail(email string) (bool, error) {
-	return service.Controller.MakeUserAccountAsVerifiedByEmail(email)
-}
-
-func (service *UserServiceImpl) CreateNewSocialUser(userData *socialModel.SocialSignupData) (string, error) {
-	return service.Controller.CreateNewSocialUser(userData)
-}
-
-func (service *UserServiceImpl) SoftDeleteUserProfile(userId string, ch chan bool) {
-	service.Controller.SoftDeleteUserProfile(userId, ch)
-}
-
-func (service *UserServiceImpl) UpsertDeleteRequet(reason, email, userId string) (bool, error) {
-	return service.Controller.UpsertDeleteRequet(reason, email, userId)
+func (service *userControllerImpl) MakeUserAccountAsVerifiedByEmail(email string) (bool, error) {
+	return service.userController.MakeUserAccountAsVerifiedByEmail(email)
 }
