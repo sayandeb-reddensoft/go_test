@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nelsonin-research-org/clenz-auth/globals"
-	"github.com/nelsonin-research-org/clenz-auth/models/appschema"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
+	"github.com/nelsonin-research-org/cdc-auth/models/appschema"
 )
 
 func LoadCertificateKeys() error {

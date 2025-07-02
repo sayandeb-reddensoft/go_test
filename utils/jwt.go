@@ -5,26 +5,25 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
-	constants "github.com/nelsonin-research-org/clenz-auth/const"
-	"github.com/nelsonin-research-org/clenz-auth/globals"
-	"github.com/nelsonin-research-org/clenz-auth/models/appschema"
+	constants "github.com/nelsonin-research-org/cdc-auth/const"
+	"github.com/nelsonin-research-org/cdc-auth/globals"
+	"github.com/nelsonin-research-org/cdc-auth/models/appschema"
+	limitations "github.com/nelsonin-research-org/cdc-auth/models/limitation"
 )
 
 func GenerateJWTClaims(data *appschema.JwtData, ttl time.Duration) jwt.MapClaims {
 	now := time.Now().UTC()
 	claims := make(jwt.MapClaims)
 	claims["email"] = data.Email
-	claims["first_name"] = data.FirstName
-	claims["last_name"] = data.LastName
 	claims["id"] = data.ID
-	claims["type"] = data.Type
+	claims["role"] = data.Role
 	claims["exp"] = now.Add(ttl).Unix() // The expiration time after which the token must be disregarded.
-	claims["token_type"] = constants.LONG_LIVE_TOKEN
+	claims["token_type"] = constants.PRIMARY_TOKEN
 	claims["jwt_created"] = now.Unix()
 	return claims
 }
 
-func GenerateToken(ttl time.Duration, data *appschema.JwtData) (map[string]string, error) {
+func GeneratePrimaryToken(ttl time.Duration, data *appschema.JwtData) (map[string]string, error) {
 	accessClaims := GenerateJWTClaims(data, ttl)
 	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims).SignedString(globals.AppKeys.PrivateKey)
 	if err != nil {
@@ -32,7 +31,7 @@ func GenerateToken(ttl time.Duration, data *appschema.JwtData) (map[string]strin
 		return nil, err
 	}
 
-	refreshClaims := GenerateRefreshTokenClaims(ttl+7*24*time.Hour, data.ID, data.Email)
+	refreshClaims := GenerateRefreshTokenClaims(limitations.JWT_LIMITATION.REFRESH_TOKEN_TTL, data.ID, data.Email)
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshClaims).SignedString(globals.AppKeys.PrivateKey)
 	if err != nil {
 		fmt.Println("Error generating refresh token: ", err)
