@@ -4,16 +4,17 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/nelsonin-research-org/cdc-auth/interfaces"
 )
 
-type FormValidationController struct{}
+type formValidationControllerImpl struct{}
 
-func NewFormValidationController() *FormValidationController {
-	return &FormValidationController{}
+func NewFormValidationController() interfaces.FormValidationController {
+	return &formValidationControllerImpl{}
 }
 
 // ValidateStruct validates a struct based on its tags
-func (c *FormValidationController) ValidateStruct(s interface{}) error {
+func (c *formValidationControllerImpl) ValidateStruct(s interface{}) error {
 	validate := validator.New()
 	err := validate.Struct(s)
 	if err != nil {
@@ -23,12 +24,13 @@ func (c *FormValidationController) ValidateStruct(s interface{}) error {
 }
 
 // ReturnFirstInvalidField returns the first invalid field in case of validation errors
-func (c *FormValidationController) ReturnFirstInvalidField(err error) string {
-	var field string
+func (c *formValidationControllerImpl) ReturnFirstInvalidField(err error) string {
 	for _, err := range err.(validator.ValidationErrors) {
-		f := err.StructNamespace()
-		field = strings.Split(f, ".")[1]
-		break
+		ns := err.StructNamespace()
+		if dotIndex := strings.Index(ns, "."); dotIndex != -1 {
+			return ns[dotIndex+1:]
+		}
+		return ns
 	}
-	return field
+	return ""
 }
