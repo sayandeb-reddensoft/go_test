@@ -1,16 +1,33 @@
 package model
 
+type SignUpData struct {
+	OrgName            string        `json:"org_name" validate:"required"`
+	OrgEmail           string        `json:"email" validate:"required,email,max=255"`
+	Password           string        `json:"password" validate:"required"`
+	ContactName        string        `json:"contact_name" validate:"required"`
+	Address            SignupAddress `json:"address" validate:"required"`
+	ContactNumber      string        `json:"contact_number" validate:"required"`
+	ContactDescription string        `json:"contact_description" validate:"required"`
+}
+
+type SignupAddress struct {
+	StreetLane string `json:"street_line" validate:"required"`
+	City       string `json:"city"  validate:"required"`
+	State      string `json:"state" validate:"required"`
+	PostalCode string `json:"zip_code" validate:"required"`
+}
+
+type User struct {
+	UserId   string `json:"user_id"`
+	Password string `json:"passwprd"`
+	Email    string `json:"email"`
+	Role     int    `json:"role_id"`
+	IsActive bool   `json:"is_active"`
+}
+
 type LoginData struct {
 	Email    string `json:"email"     validate:"required,email,max=255"`
 	Password string `json:"password" validate:"required"`
-}
-
-type SignUpData struct {
-	FirstName string `json:"first_name" validate:"required,max=255"`
-	LastName  string `json:"last_name"  validate:"max=255"`
-	DOB       string `json:"dob"    validate:"required"`
-	Email     string `json:"email"     validate:"required,email,max=255"`
-	Password  string `json:"password"  validate:"required,min=8,max=1000"`
 }
 
 type ForgetPasswordData struct {
@@ -29,13 +46,10 @@ type ResendOtpData struct {
 }
 
 type GetUserData struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Gender    string `json:"gender"`
-	Email     string `json:"email"`
-	Type      int    `json:"type"`
-	DOB       string `json:"dob"`
-	IsActive  bool   `json:"is_active"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Role     int    `json:"role"`
+	IsActive bool   `json:"is_active"`
 }
 
 type UpdatePasswordData struct {

@@ -4,9 +4,7 @@ package appschema
 type JwtData struct {
 	ID        string `json:"id"`
 	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Type      int    `json:"type"`
+	Role      int    `json:"role"`
 }
 
 // user quick token/temp token claims
